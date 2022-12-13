@@ -1,566 +1,148 @@
-import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 
 from FFNN import FFNN
-from sklearn.linear_model import SGDClassifier
-from LogisticRegression import LogisticRegression
-from LinearRegression import LinearRegression
 from ResampleMethods import *
 
-cm = 1/2.54
-
-def GridSearch_FFNN_classifier(
-    X,
-    y, 
-    lambda_values, 
-    eta_values, 
-    plot_grid=True,
-    gamma=0.9,
-    activation_hidden="reLU",
-    n_epochs=200,
-    batch_size=20,
-    n_hidden_neurons = [100],
-    k=5
-    ):
-    accuracy = np.zeros((len(eta_values), len(lambda_values)))
-
-    for i, eta in enumerate(eta_values):
-        for j, lmbda in enumerate(lambda_values):
-            print(f"Computing eta={eta} and lambda={lmbda}.")
-            network = FFNN(
-                n_hidden_neurons=n_hidden_neurons, 
-                task="classification", 
-                n_epochs=n_epochs, 
-                batch_size=batch_size, 
-                eta=eta, lmbda=lmbda, 
-                gamma=gamma, 
-                activation_hidden=activation_hidden
-                )
-
-            accuracy_score = CrossValidation_classification(network, X, y, k=k)
-
-            accuracy[i][j] = accuracy_score
-    
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            accuracy, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'Accuracy'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("Accuracy")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        info = f"_mom{gamma}" + "_activ" + activation_hidden + f"_epoch{n_epochs}_batch{batch_size}_layers{len(n_hidden_neurons)}_neuro{n_hidden_neurons[0]}"
-        plt.tight_layout()
-        plt.savefig("figs/gridsearch_FFNN_class" + info + ".pdf")   
-
-    return accuracy
-
-def GridSearch_LogReg(
-    X,
-    y, 
-    lambda_values, 
-    eta_values, 
-    solver="sgd",
-    optimization="adam",
-    plot_grid=True,
-    gamma=0.9,
-    max_iter=300,
-    batch_size=20,
-    k=5
-    ):
-    accuracy = np.zeros((len(eta_values), len(lambda_values)))
-
-    for i, eta in enumerate(eta_values):
-        for j, lmbda in enumerate(lambda_values):
-            #print(f"Computing eta={eta} and lambda={lmbda}.")
-            logreg = LogisticRegression(
-                solver=solver,
-                optimization=optimization,
-                batch_size=batch_size, 
-                eta0=eta, 
-                lmbda=lmbda, 
-                gamma=gamma, 
-                max_iter=max_iter
-                )
-
-            accuracy_score = CrossValidation_classification(logreg, X, y, k=k)
-            accuracy[i][j] = accuracy_score
-
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            accuracy, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'Accuracy'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("Accuracy")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        plt.tight_layout()
-        if optimization == None:
-            optimization = "None"
-        info = f"_sol" + solver + "_opt" + optimization + f"_mom{gamma}_iter{max_iter}_batch{batch_size}"
-        plt.savefig("figs/gridsearch_logreg" + info + ".pdf")   
-
-    return accuracy
-
-def GridSearch_LogReg_Sklearn(
-    X,
-    y, 
-    lambda_values, 
-    eta_values, 
-    plot_grid=True,
-    max_iter=300,
-    k=5
-    ):
-    accuracy = np.zeros((len(eta_values), len(lambda_values)))
-
-    for i, eta in enumerate(eta_values):
-        for j, lmbda in enumerate(lambda_values):
-            print(f"Computing eta={eta} and lambda={lmbda}.")
-            logreg = SGDClassifier(max_iter=max_iter, alpha=lmbda, eta0=eta, tol=1e-3)
-            accuracy_score = CrossValidation_classification(logreg, X, y, k=k)
-            accuracy[i][j] = accuracy_score
-
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            accuracy, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'Accuracy'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("Accuracy")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        plt.tight_layout()
-
-        info =  f"_iter{max_iter}"
-        plt.savefig("figs/gridsearch_logreg_sklearn" + info + ".pdf")   
-
-    return accuracy
+cmt = 1 / 2.54
 
 
-def GridSearch_LinReg(
-    X,
-    y, 
-    lambda_values, 
-    eta_values, 
-    solver="analytic",
-    optimization=None,
-    plot_grid=True,
-    gamma=0.9,
-    max_iter=300,
-    batch_size=20,
-    k=5
-    ):
-    mse_values = np.zeros((len(eta_values), len(lambda_values)))
-    r2_values = np.zeros((len(eta_values), len(lambda_values)))
-
-
-    for i, eta in enumerate(eta_values):
-        for j, lmbda in enumerate(lambda_values):
-            print(f"Computing eta={eta} and lambda={lmbda}.")
-            linreg = LinearRegression(
-                solver=solver,
-                optimization=optimization,
-                batch_size=batch_size, 
-                eta0=eta, 
-                lmbda=lmbda, 
-                gamma=gamma, 
-                max_iter=max_iter
-                )
-
-            mse, r2 = CrossValidation_regression(linreg, X, y, k=k)
-
-            mse_values[i][j] = mse
-            r2_values[i][j] = r2
-
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            mse_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'MSE'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("MSE")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        plt.tight_layout()
-        info = "_sol" + solver 
-
-        if solver != "analytic":
-            info += f"_opt{optimization}_mom{gamma}_iter{max_iter}_batch{batch_size}"
-
-        plt.savefig("figs/gridsearch_linreg_MSE" + info + ".pdf")
-        
-        fig, ax = plt.subplots(figsize = (12*cm, 12*cm))
-        sns.heatmap(
-            r2_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': '$R^2$'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("$R^2$")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        plt.tight_layout()
-        plt.savefig("figs/gridsearch_linreg_R2" + info + ".pdf")
-
-    return mse_values, r2_values
-       
 def GridSearch_FFNN_reg(
     X,
-    y, 
-    lambda_values, 
-    eta_values, 
+    y,
+    n_layers,
+    n_neurons,
+    lambda_values,
+    eta=0.001,
     plot_grid=True,
     gamma=0.9,
-    activation_hidden="reLU",
-    n_epochs=200,
+    activation_hidden='reLU',
+    n_epochs=500,
     batch_size=20,
-    n_hidden_neurons = [100],
     k=5,
-    initialization="standard"
-    ):
+):
 
-    mse_values = np.zeros((len(eta_values), len(lambda_values)))
-    r2_values = np.zeros((len(eta_values), len(lambda_values)))
-
-    for i, eta in enumerate(eta_values):
-        for j, lmbda in enumerate(lambda_values):
-            print(f"Computing eta={eta} and lambda={lmbda}.")
-            network = FFNN(
-                n_hidden_neurons=n_hidden_neurons, 
-                task="regression", 
-                n_epochs=n_epochs, 
-                batch_size=batch_size, 
-                eta=eta, lmbda=lmbda, 
-                gamma=gamma, 
-                activation_hidden=activation_hidden,
-                initialization=initialization
-                )
-
-            mse, r2 = CrossValidation_regression(network, X, y, k=k)
-
-            mse_values[i][j] = mse
-            r2_values[i][j] = r2
-    
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            mse_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'MSE'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("MSE")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        
-        info = f"_mom{gamma}" + "_activ" + activation_hidden + f"_epoch{n_epochs}_batch{batch_size}_layers{len(n_hidden_neurons)}_neuro{n_hidden_neurons[0]}"
-        plt.tight_layout()
-        plt.savefig("figs/gridsearch_FFNN_reg_MSE" + info + ".pdf")  
-
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            r2_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': '$R^2$'},
-            yticklabels=np.round(np.log10(eta_values), 2), 
-            xticklabels=np.round(np.log10(lambda_values), 2)
-            )
-        #ax.set_title("$R^2$")
-        ax.set_ylabel("$\log_{10}(\eta$)")
-        ax.set_xlabel("$\log_{10}(\lambda$)")
-        plt.tight_layout()
-        plt.savefig("figs/gridsearch_FFNN_reg_R2" + info + ".pdf")   
-
-    return mse_values, r2_values
-
-def GridSearch_LinReg_epochs_batchsize(
-    X,
-    y, 
-    eta,
-    batch_sizes,
-    n_epochs,
-    lmbda=0,  
-    solver="sgd",
-    optimization=None,
-    plot_grid=True,
-    gamma=0.0,
-    k=5
-    ):
-    mse_values = np.zeros((len(batch_sizes), len(n_epochs)))
-    r2_values = np.zeros((len(batch_sizes), len(n_epochs)))
-
-
-    for i, M in enumerate(batch_sizes):
-        for j, epochs in enumerate(n_epochs):
-            print(f"Computing batch size={M} and num. epochs={epochs}.")
-            linreg = LinearRegression(
-                solver=solver,
-                optimization=optimization,
-                batch_size=M, 
-                eta0=eta, 
-                lmbda=lmbda, 
-                gamma=gamma, 
-                max_iter=epochs
-                )
-
-            mse, r2 = CrossValidation_regression(linreg, X, y, k=k)
-
-            mse_values[i][j] = mse
-            r2_values[i][j] = r2
-
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            mse_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'MSE'},
-            yticklabels=batch_sizes, 
-            xticklabels=n_epochs
-            )
-        #ax.set_title("MSE")
-        ax.set_ylabel("Batch size")
-        ax.set_xlabel("Epochs")
-        plt.tight_layout()
-        info = "_sol" + solver 
-
-        if solver != "analytic":
-            info += f"_opt{optimization}_mom{gamma}_eta{eta}_lmbda{lmbda}"
-
-        plt.savefig("figs/gridsearch_linreg_MSE_epoch_batchsize" + info + ".pdf")
-        
-        fig, ax = plt.subplots(figsize = (12*cm, 12*cm))
-        sns.heatmap(
-            r2_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis",
-            cbar_kws={'label': '$R^2$'}, 
-            yticklabels=batch_sizes, 
-            xticklabels=n_epochs
-            )
-        #ax.set_title("$R^2$")
-        ax.set_ylabel("Batch size")
-        ax.set_xlabel("Epochs")
-        plt.tight_layout()
-        plt.savefig("figs/gridsearch_linreg_R2_epoch_batchsize" + info + ".pdf")
-
-    return mse_values, r2_values
-
-def GridSearch_LogReg_epochs_batchsize(
-    X,
-    y, 
-    lmbda, 
-    eta, 
-    solver="sgd",
-    optimization=None,
-    plot_grid=True,
-    gamma=0.9,
-    max_iters=300,
-    batch_sizes=20,
-    k=5
-    ):
-
-    accuracy = np.zeros((len(batch_sizes), len(max_iters)))
-
-    for i, eta in enumerate(batch_sizes):
-        for j, _iter in enumerate(max_iters):
-            #print(f"Computing eta={eta} and lambda={lmbda}.")
-            logreg = LogisticRegression(
-                solver=solver,
-                optimization=optimization,
-                batch_size=batch_sizes[i], 
-                eta0=eta, 
-                lmbda=lmbda,
-                gamma=gamma, 
-                max_iter=_iter
-                )
-
-            accuracy_score = CrossValidation_classification(logreg, X, y, k=k)
-            accuracy[i][j] = accuracy_score
-
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            accuracy, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': 'Accuracy'},
-            yticklabels=batch_sizes, 
-            xticklabels=max_iters
-            )
-        #ax.set_title("Accuracy")
-        ax.set_ylabel("Batch size")
-        ax.set_xlabel("Epochs")
-        plt.tight_layout()
-        info = "_sol" + solver 
-
-        if optimization == None:
-            optimization = "None"
-        info += f"_opt{optimization}_mom{gamma}_eta{eta}_lmbda{lmbda}"
-        plt.savefig("figs/gridsearch_logreg_epoch_batchsize" + info + ".pdf")
-
-    return accuracy
-
-
-
-def GridSearch_FFNN_reg_architecture(
-    X,
-    y,
-    n_layers,
-    n_neurons, 
-    lmbda=0, 
-    eta=1e-3, 
-    plot_grid=True,
-    gamma=0.9,
-    activation_hidden="sigmoid",
-    n_epochs=1000,
-    batch_size=20,
-    k=5
-    ):
-
-    mse_values = np.zeros((len(n_layers), len(n_neurons)))
-    r2_values = np.zeros((len(n_layers), len(n_neurons)))
+    rmse_values = np.zeros((len(n_layers), len(n_neurons), len(lambda_values)))
+    r2_values = np.zeros((len(n_layers), len(n_neurons), len(lambda_values)))
 
     for i, L in enumerate(n_layers):
         for j, n in enumerate(n_neurons):
-            print(f"Computing with {L} layers and {n} neurons.")
-            network = FFNN(
-                n_hidden_neurons=[n]*L, 
-                task="regression", 
-                n_epochs=n_epochs, 
-                batch_size=batch_size, 
-                eta=eta, lmbda=lmbda, 
-                gamma=gamma, 
-                activation_hidden=activation_hidden
+            for l, lmbda in enumerate(lambda_values):
+                print(
+                    f'Computing with {L} layers and {n} neurons and lambda={lmbda}.'
+                )
+                network = FFNN(
+                    n_hidden_neurons=[n] * L,
+                    task='regression',
+                    n_epochs=n_epochs,
+                    batch_size=batch_size,
+                    eta=eta,
+                    lmbda=lmbda,
+                    gamma=gamma,
+                    activation_hidden=activation_hidden,
                 )
 
-            mse, r2 = CrossValidation_regression(network, X, y, k=k)
+                mse, r2 = CrossValidation_regression(network, X, y, k=k)
 
-            mse_values[i][j] = mse
-            r2_values[i][j] = r2
-    
+                rmse_values[i][j][l] = np.sqrt(mse)
+                r2_values[i][j][l] = r2
+
     if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            mse_values, 
-            annot=True, 
-            cbar_kws={'label': 'MSE'},
-            ax=ax, 
-            cmap="viridis", 
-            yticklabels=n_layers, 
-            xticklabels=n_neurons
-            )
-        #ax.set_title("MSE")
-        ax.set_ylabel("Layers")
-        ax.set_xlabel("Neurons")
-        
-        info = f"_mom{gamma}" + "_activ" + activation_hidden + f"_epoch{n_epochs}_batch{batch_size}_eta{eta}"
-        
-        plt.savefig("figs/gridsearch_FFNN_reg_MSE_architecture" + info + ".pdf")  
+        # make a 3d scatter plot with the MSE values as color
+        fig = plt.figure(figsize=(13 * cmt, 12 * cmt))
+        ax = fig.add_subplot(111, projection='3d')
+        cm = plt.get_cmap('magma')
 
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            r2_values, 
-            annot=True, 
-            ax=ax, 
-            cmap="viridis", 
-            cbar_kws={'label': '$R^2$'},
-            yticklabels=n_layers, 
-            xticklabels=n_neurons
-            )
-        #ax.set_title("$R^2$")
-        ax.set_ylabel("Layers")
-        ax.set_xlabel("Neurons")
+        # normalize the color to the range of the MSE values
+        # normalize = matplotlib.colors.Normalize(vmin=np.min(rmse_values), vmax=np.max(rmse_values))
+        for i, L in enumerate(n_layers):
+            for j, n in enumerate(n_neurons):
+                ax.scatter(
+                    [L] * len(lambda_values),
+                    [n] * len(lambda_values),
+                    np.log10(lambda_values),
+                    c=rmse_values[i][j],
+                    vmin=np.min(rmse_values),
+                    vmax=np.max(rmse_values),
+                    cmap=cm,
+                    s=100,
+                )
+                # add colorbar
+        # put the colorbar on the bottom
+
+        cbar = fig.colorbar(
+            ax.collections[0],
+            ax=ax,
+            orientation='vertical',
+            location='left',
+            pad=0,
+        )
+        # normalize colorbar to the range of the MSE values
+        cbar.mappable.set_clim(np.min(rmse_values), np.max(rmse_values))
+
+        cbar.set_label('RMSE')
+
+        ax.set_ylabel('Layers')
+        ax.set_xlabel('Neurons')
+        # put z lable to the left
+        ax.set_zlabel('$\log_{10}(\lambda$)')
+        # mark the minimum as an o and display mse value as text
+        min_mse = np.min(rmse_values)
+        min_mse_index = np.where(rmse_values == min_mse)
+        ax.scatter(
+            n_layers[min_mse_index[0][0]],
+            n_neurons[min_mse_index[1][0]],
+            np.log10(lambda_values[min_mse_index[2][0]]),
+            s=120,
+            marker='o',
+            facecolors='none',
+            edgecolors='r',
+        )
+        ax.text(
+            n_layers[min_mse_index[0][0]],
+            n_neurons[min_mse_index[1][0]],
+            np.log10(lambda_values[min_mse_index[2][0]]),
+            f'MSE={min_mse:.3f}',
+            color='red',
+            size=10,
+        )
+
+        info = (
+            f'_mom{gamma}'
+            + '_activ'
+            + activation_hidden
+            + f'_epoch{n_epochs}_batch{batch_size}_eta{eta}'
+        )
         plt.tight_layout()
-        plt.savefig("figs/gridsearch_FFNN_reg_R2_architecture" + info + ".pdf")   
+        # adjust tight layout to make room for colorbar
+        plt.subplots_adjust(
+            left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2
+        )
+        plt.savefig('../figs/gridsearch_FFNN_reg_MSE' + info + '.pdf')
 
-    return mse_values, r2_values
+        # fig, ax = plt.subplots(figsize = (13*cmt, 12*cmt))
+        # sns.heatmap(
+        #    r2_values,
+        #    annot=True,
+        #    ax=ax,
+        #    cmap="viridis",
+        #    cbar_kws={'label': '$R^2$'},
+        #    yticklabels=n_layers,
+        #    xticklabels=n_neurons,
+        #    zticklabels=np.round(np.log10(lambda_values), 2)
+        #    )
+        ##ax.set_title("$R^2$")
+        # ax.set_ylabel("Layers")
+        # ax.set_xlabel("Neurons")
+        # ax.set_zlabel("$\log_{10}(\lambda$)")
+        # plt.tight_layout()
+        # plt.savefig("../figs/gridsearch_FFNN_reg_R2" + info + ".pdf")
 
-
-def GridSearch_FFNN_classification_architecture(
-    X,
-    y,
-    n_layers,
-    n_neurons, 
-    eta, 
-    n_epochs,
-    lmbda=0, 
-    plot_grid=True,
-    gamma=0.9,
-    activation_hidden="sigmoid",
-    batch_size=20,
-    k=5
-    ):
-
-    accuracy_scores = np.zeros((len(n_layers), len(n_neurons)))
-
-    for i, L in enumerate(n_layers):
-        for j, n in enumerate(n_neurons):
-            print(f"Computing with {L} layers of {n} neurons each.")
-            network = FFNN(
-                n_hidden_neurons=[n]*L, 
-                task="classification", 
-                n_epochs=n_epochs, 
-                batch_size=batch_size, 
-                eta=eta, lmbda=lmbda, 
-                gamma=gamma, 
-                activation_hidden=activation_hidden
-                )
-
-            acc = CrossValidation_classification(network, X, y, k=k)
-
-            accuracy_scores[i][j] = acc
-    
-    if plot_grid:
-        fig, ax = plt.subplots(figsize = (13*cm, 12*cm))
-        sns.heatmap(
-            accuracy_scores, 
-            annot=True, 
-            cbar_kws={'label': 'Accuracy'},
-            ax=ax, 
-            cmap="viridis", 
-            yticklabels=n_layers, 
-            xticklabels=n_neurons
-            )
-        ax.set_ylabel("Layers")
-        ax.set_xlabel("Neurons")
-        
-        info = f"_mom{gamma}" + "_activ" + activation_hidden + f"_epoch{n_epochs}_batch{batch_size}_eta{eta}"
-        
-        plt.savefig("figs/gridsearch_FFNN_classify_accuracy_architecture" + info + ".pdf")  
-
-    return accuracy_scores
+    return (
+        rmse_values,
+        lambda_values[min_mse_index[2][0]],
+        n_layers[min_mse_index[0][0]],
+        n_neurons[min_mse_index[1][0]],
+    )

@@ -5,8 +5,7 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
-from LinearRegression import LinearRegression
-from common import *
+from utils import Metrics
 
 def Bootstrap(model, X, y, B=100):
 
@@ -24,8 +23,8 @@ def Bootstrap(model, X, y, B=100):
         model.fit(X, y) # is a little slow with sgd
 
         predicted = model.predict(Xtest)
-        MSE_values.append( MSE(y=predicted, y_pred=ytest) )
-        R2_values.append( R2(y=ytest, y_pred=predicted) )
+        MSE_values.append(Metrics.MSE(y=predicted, y_pred=ytest) )
+        R2_values.append(Metrics.R2(y=ytest, y_pred=predicted) )
 
     return np.mean(MSE_values), np.mean(R2_values)
 
@@ -51,8 +50,8 @@ def CrossValidation_regression(model, X, y, k=10):
         model.fit(Xtrain, ytrain)
         predicted = model.predict(Xtest)
 
-        MSE_values.append( MSE(y=predicted, y_pred=ytest) )
-        R2_values.append( R2(y=ytest, y_pred=predicted) )
+        MSE_values.append(Metrics.MSE(y=predicted, y_pred=ytest) )
+        R2_values.append(Metrics.R2(y=ytest, y_pred=predicted) )
 
     return np.mean(MSE_values), np.mean(R2_values) #should include error of estimates too
 
@@ -77,6 +76,6 @@ def CrossValidation_classification(model, X, y, k=10):
         model.fit(Xtrain, ytrain)
         predicted = model.predict(Xtest)
 
-        accuracy_values.append( accuracy(y=ytest, y_pred=predicted) )
+        accuracy_values.append(accuracy(y=ytest, y_pred=predicted) )
 
     return np.mean(accuracy_values)
