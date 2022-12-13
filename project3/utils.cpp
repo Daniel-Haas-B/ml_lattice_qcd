@@ -1,7 +1,7 @@
 #include "./include/utils.hpp"
 
-std::mt19937 gen(42);
-double kb=1.;
+std::mt19937 gen(time(NULL));
+double kb = 1.;
 arma::mat init_random_config(int L, double &E, double &M, int align)
 {
     int N = L * L;
@@ -111,9 +111,9 @@ void monte_carlo(int L, int mc_cycles, int burn_pct, double T, int align, int th
     else if (output == "grid")
     {
 
-        filename1 = "data/" + str_L + "/s1_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_t" + rounded_T + ".csv";
-        filename2 = "data/" + str_L + "/s2_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_t" + rounded_T + ".csv";
-        filename3 = "data/" + str_L + "/s3_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_t" + rounded_T + ".csv";
+        filename1 = "data/" + str_L + "/s1_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_tl" + lower_T + "_tu" + upper_T + ".csv";
+        filename2 = "data/" + str_L + "/s2_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_tl" + lower_T + "_tu" + upper_T + ".csv";
+        filename3 = "data/" + str_L + "/s3_cfg_L" + str_L + "_A" + str_align + "_mc" + str_mc_cycles + "_burn" + str_burn_pct + "_tl" + lower_T + "_tu" + upper_T + ".csv";
     }
     else if (output == "epsilons")
     {
@@ -154,6 +154,10 @@ void monte_carlo(int L, int mc_cycles, int burn_pct, double T, int align, int th
     double Cv = 0;
     double chi = 0;
     arma::mat config = init_random_config(L, E, M, align);
+
+    // create vector filled with the same tempeara as the one we are currently simulating L times
+    arma::vec T_vec = arma::zeros<arma::vec>(L);
+    T_vec.fill(T);
 
     file1.open(filename1, std::ofstream::app);
     if (output == "grid")
@@ -241,7 +245,9 @@ void monte_carlo(int L, int mc_cycles, int burn_pct, double T, int align, int th
     }
     else if (output == "grid")
     {
-        config.save(file3, arma::csv_ascii);
+        // concatenate config and T_vec
+        arma::mat config_T = arma::join_rows(config, T_vec);
+        config_T.save(file3, arma::csv_ascii);
         file3.close();
     }
 }
