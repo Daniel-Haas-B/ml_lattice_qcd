@@ -1,10 +1,10 @@
-## Study of the Ising model critical temperature and phase transitions
+## Identifying Ising model phase transitions with neural networks
 
 We simulated the Ising model using the Metropolis method, a Markov Chain Monte Carlo (MCMC) method. 
 Our goal is to find the critical temperature of the Ising model in order to study its phase transitions and magneitzation.
 
-We implemented the 2D lattice version of the Ising model, using a 2x2 case as our analytical solution. 
-We increased the lattice size gradually and ran for multiple Monte Carlo cycles.
+We implemented the 50x50 2D lattice version of the Ising model and trained a convolutional neural network (CNN) to perform regession and classification.
+The regression task was of predicting the lattice temperature while the classification was identifying configurations above and below critical temperature of phase transition. We then predict the critical temperature as the one which exhibits largest uncertainty in classification.
 
 
 Compile for mac users: 
