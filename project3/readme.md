@@ -7,29 +7,36 @@ We implemented the 50x50 2D lattice version of the Ising model and trained a con
 The regression task was of predicting the lattice temperature while the classification was identifying configurations above and below critical temperature of phase transition. We then predict the critical temperature as the one which exhibits largest uncertainty in classification.
 
 Here are 3 of the 1265 elements of the data set
-![alt text](https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/L50_configs.png?raw=true)
-
+<p align="center">
+<img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/L50_configs.png?raw=true"/>
+<p align="center">
 
 Here is the architecture of one of the best CNN implemented:
 
-![alt text](https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_arch.png?raw=true)
+<p align="center">
+<img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_arch.png?raw=true"  width="500"/>
 
 
 Here is our best regression predictions over test set
 
-![alt text](https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_l2reg001_eta00001_epoch1000-1.png?raw=true)
+<p align="center">
+<img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_l2reg001_eta00001_epoch1000-1.png?raw=true" width="500"/>
+<p align="center">
+
 
 
 Here is the confusion matrix from the critical temperature classification
-
- ![alt text](https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_confusion_matrix-1.png?raw=true)
-
+<p align="center">
+<img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_confusion_matrix-1.png?raw=true" width="500"/>
+<p align="center">
 
 
 Here is the critical temperature infered from classification
 
- ![alt text](https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_probabilities-1.png?raw=true)
 
+<p align="center">
+<img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_probabilities-1.png?raw=true" width="500"/>
+<p align="center">
 
 
 ## Generating the datasets yourself with our C++ code
