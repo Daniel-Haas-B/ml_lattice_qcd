@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 
 
 class Ising:
-    def load_data():
+    def load_data(split=True):
         np.random.seed(123)
 
         data = pd.read_csv("../data/50/s3_cfg_L50_A0_mc1000000_burn1_tl1.000_tu3.530.csv", header=None)
@@ -14,9 +14,10 @@ class Ising:
 
         X = X.reshape(len(y), 50*50)
         y = y.reshape(len(y), 1)
-
-        Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, test_size=0.2)
-        return Xtrain, Xtest, ytrain, ytest
+        if split:
+            return train_test_split(X, y, test_size=0.2)
+        
+        return X, y
 
 class Metrics:
     def MSE(y, y_pred):
