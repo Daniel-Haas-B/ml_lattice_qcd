@@ -11,7 +11,7 @@ Here are 3 of the 1265 elements of the data set
 <img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/L50_configs.png?raw=true"/>
 <p align="center">
 
-Here is the architecture of one of the best CNN implemented:
+Here is the architecture of the best CNN implemented:
 
 <p align="center">
 <img src="https://github.com/Daniel-Haas-B/FYS-STK4155/blob/main/project3/figs/TF_CNN_arch.png?raw=true"  width="500"/>
