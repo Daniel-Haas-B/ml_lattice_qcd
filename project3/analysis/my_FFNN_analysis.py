@@ -74,7 +74,7 @@ plt.plot(ytest, label='True Temperature')
 plt.plot(pred, label='Predicted Temperature')
 plt.legend()
 plt.xlabel('Test Sample')
-plt.ylabel('Temperature (J/k_B)')
+plt.ylabel('Temperature $(J/k_B)$')
 # change ticks font size
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
