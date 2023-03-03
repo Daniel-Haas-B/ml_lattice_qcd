@@ -1,0 +1,7 @@
+repos:
+-   repo: https://github.com/Daniel-Haas-B/ml_lattice_qcd
+    rev: master
+    hooks:
+    -   id: clang-format
+    -   id: cpplint
+    -   id: cppcheck
