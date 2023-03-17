@@ -1,16 +1,40 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
 
 
 class Ising:
     def load_data(split=True):
         np.random.seed(123)
 
-        data = pd.read_csv("../data/50/s3_cfg_L50_A0_mc1000000_burn1_tl1.000_tu3.530.csv", header=None)
+        data = pd.read_csv("../Ising/data/50/s3_cfg_L50_A0_mc1000000_burn1_tl1.000_tu3.530.csv", header=None)
         X = data.iloc[:, :-1].to_numpy()
 
-        y = data.iloc[:, -1][::50].to_numpy() # take every 50th row
+        y = data.iloc[:, -1][::50].to_numpy() # take every 50th collumn
+
+        X = X.reshape(len(y), 50*50)
+        y = y.reshape(len(y), 1)
+        if split:
+            return train_test_split(X, y, test_size=0.2)
+        
+        return X, y
+
+    
+
+class Potts:
+    def load_data(split=True, scale=True):
+        np.random.seed(123)
+
+        data = pd.read_csv("../Potts/output_config.txt", header=None, sep=" ")
+        X = data.iloc[:, :-1].to_numpy()
+
+        y = data.iloc[:, -1][::50].to_numpy() # take every 50th collumn
+
+        if scale:
+            scaler = StandardScaler()
+            X = scaler.fit_transform(X)
 
         X = X.reshape(len(y), 50*50)
         y = y.reshape(len(y), 1)
