@@ -28,7 +28,8 @@ void initialize(int, double, int **, double &, double &, int, long &);
 void Metropolis(int, long &, int **, double &, double &,
                 double, int, double *);
 // prints to file the results of the calculations
-void output(int, int, double, double *, int);
+void output_data(int, int, double, double *, int);
+void output_config(int, int **, double);
 
 int main(int argc, char *argv[])
 {
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
   int **spin_matrix, n_spins, mcs, q;
   double w[9], average[5], initial_temp, final_temp, E, M,
       temp_step;
+  bool config;
 
   // Read in output file, abort if there are too
   // few command-line arguments
@@ -49,8 +51,9 @@ int main(int argc, char *argv[])
   else
   {
     outfilename = argv[1];
+    config = argv[2];
   }
-  ofile.open(outfilename);
+  ofile.open(outfilename, fstream::app);
 
   // Read in initial values such as size of lattice, temp and cycles
   input(n_spins, mcs, initial_temp, final_temp, temp_step, q);
@@ -94,11 +97,20 @@ int main(int argc, char *argv[])
       average[4] += fabs(M);
     }
     // print results
-    output(n_spins, mcs, temperature, average, q);
+    if (config)
+    {
+      output_config(n_spins, spin_matrix, temperature);
+    }
+    else
+    {
+      output_data(n_spins, mcs, temperature, average, q);
+    }
     cout << temperature << endl;
   }
+
   free_matrix((void **)spin_matrix); // free memory
   ofile.close();                     // close output file
+
   return 0;
 }
 
@@ -205,8 +217,8 @@ void Metropolis(int n_spins, long &idum, int **spin_matrix, double &E,
 
 } // end of Metropolis sampling over spins
 
-void output(int n_spins, int mcs, double temperature,
-            double *average, int q)
+void output_data(int n_spins, int mcs, double temperature,
+                 double *average, int q)
 {
 
   double norm = 1 / ((double)(mcs)); // divided by total number of cycles
@@ -228,3 +240,20 @@ void output(int n_spins, int mcs, double temperature,
   ofile << setw(15) << setprecision(8) << Mvariance / temperature;
   ofile << setw(15) << setprecision(8) << Mabsaverage / n_spins / n_spins << endl;
 } // end output function
+
+void output_config(int n_spins, int **spin_matrix, double temperature)
+{
+  for (int y = 0; y < n_spins; y++)
+  {
+    for (int x = 0; x < n_spins; x++)
+    {
+      ofile << spin_matrix[y][x] << " ";
+      // output temperature as last column
+      if (x == n_spins - 1)
+      {
+        ofile << temperature;
+        ofile << endl;
+      }
+    }
+  }
+}

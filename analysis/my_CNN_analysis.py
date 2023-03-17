@@ -1,7 +1,7 @@
 import sys
 
 sys.path.insert(
-    1, '/Users/haas/Documents/Masters/MachineLearning/FYS-STK4155/project3'
+    1, '/Users/haas/Documents/Masters/ml_lattice_qcd'
 )
 
 from CNN import simple_Conv2d, Max_Pool2d, ReLU, my_CNN
